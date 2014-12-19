@@ -1,0 +1,39 @@
+scriptId = 'com.edwin.mousecontrol'
+minMyoConnectVersion = '0.7.0'
+scriptDetailsUrl = ''
+scriptTitle = 'MouseControl'
+
+myo.setLockingPolicy("none")
+
+function onLock()
+  myo.controlMouse(false)
+end
+
+function onUnlock()
+  myo.controlMouse(true)
+end
+
+function unlatchMouseButtons()
+    myo.mouse("left","up")
+    myo.mouse("right","up")
+end
+
+function onActiveChange(isActive)
+    if isActive then
+        myo.controlMouse(true)
+    else
+        unlatchMouseButtons()
+    end
+end
+
+
+
+-- Only activate when using Atom
+function onForegroundWindowChange(app, title)
+  return platform == "MacOS" and app == "org.videolan.vlc" or
+           platform == "Windows" and app == "Atom.exe"
+end
+
+function activeAppName()
+    return "Atom"
+end

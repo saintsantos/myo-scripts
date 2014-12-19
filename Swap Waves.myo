@@ -1,0 +1,69 @@
+scriptId = 'com.thalmic.SwapWaves'
+scriptTitle = "Swap Wave Functions"
+scrptDetailsUrl = ""
+
+myo.setLockingPolicy("none")
+
+func = "fun1"
+function swap(func)
+
+	if func == "fun1" then
+		myo.vibrate("short")
+	end
+	
+	if func ==  "fun2" then
+		myo.vibrate("short")
+		myo.vibrate("short")
+	
+	end
+	
+	if func == "fun3" then
+		myo.vibrate("short")
+		myo.vibrate("short")
+		myo.vibrate("short")
+	end
+end
+
+function oneVib()
+	myo.vibrate("short")
+end
+
+function twoVib()
+	myo.vibrate("short")
+	myo.vibrate("short")
+end
+	
+
+
+function onPoseEdge(pose, edge)
+	myo.debug("onPosedge: " .. pose .. ", " .. edge)
+	if pose == "fist" then 
+		if edge == "on" then
+			func = "fun1"
+		end	
+	end
+	
+	if pose == "fingersSpread" then
+		if edge == "on" then
+			swap(func)
+		end
+	end
+end
+
+function onForegroundWindowChange(app, title)
+	--myo.debug("onForegroundWindowChange: " .. app .. "," .. title)
+	if app == "firefox.exe" and string.find(title, " - Google Play Music - ") then
+		func = "fun2"
+		return true
+	elseif app == "MusicBee.exe" then
+		func = "fun3"
+		return true
+	else
+		func = "fun1"
+		return true
+	end
+end
+
+function onActiveChange(isActive)
+	myo.debug("onActiveChange")
+end

@@ -1,0 +1,52 @@
+scriptId = 'com.thalmic.browsercontrol'
+scriptTitle = "Browser Control"
+scriptDetailsUrl = ''
+
+function refresh()
+	myo.keyboard("r", "press", "control")
+end
+
+function forward()
+	myo.keyboard("right_arrow", "press", "alt")
+end
+
+function back()
+	myo.keyboard("left_arrow", "press", "alt")
+end
+
+function address()
+	myo.keyboard("l", "press", "control")
+end
+
+function onPoseEdge(pose, edge)
+	if pose == "doubleTap" and edge == "on" then
+		if myo.isUnlocked() then
+			myo.lock()
+		else
+			myo.unlock("hold")
+		end
+	end
+	
+	if edge == "on" and myo.isUnlocked() then
+		if pose == "fingersSpread" then
+			refresh()
+		end
+		
+		if pose == "waveIn" then
+			back()
+		end
+		
+		if pose == "waveOut" then
+			address()
+		end
+	end	
+end
+
+
+function onForegroundWindowChange(app, title)
+	return platform == "Windows" and app == "firefox.exe"
+end
+
+function activeAppName()
+	return "Firefox"
+end
