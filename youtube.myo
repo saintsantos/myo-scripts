@@ -1,0 +1,113 @@
+scriptId = 'com.thalmic.youtube'
+scriptDetailsUrl = ''
+scriptTitle = 'Youtube'
+
+function playPause()
+	myo.keyboard("space", "press")
+end
+
+function fastForward()
+	myo.keyboard("right_arrow", "press")
+end
+
+function rewind()
+	myo.keyboard("left_arrow", "press")
+end
+
+function fullscreen(app)
+	if app == "FlashPlayerPlugin_15_0_0_246.exe" then
+		myo.keyboard("escape", "press")
+	else
+		myo.keyboard("f", "press")
+	end
+end
+
+function restart()
+	myo.keyboard("home", "press")
+end
+
+
+
+	--Gets the roll of the myo armband
+function getMyoRollDegrees()
+    local rollValue = math.deg(myo.getRoll())
+    return rollValue
+end
+
+	--Use this to compare the roll of the myo relative to it's starting position
+function degreeDiff(value, base)
+    local diff = value - base
+
+    if diff > 180 then
+        diff = diff - 360
+    elseif diff < -180 then
+        diff = diff + 360
+    end
+
+    return diff
+end	
+
+function onPoseEdge(pose, edge)
+	local now = myo.getTimeMilliseconds()
+	
+	--Play/Pause
+	if edge == "on" and pose == "fist" then
+		playPause()
+	end
+	
+	--Fullscreen video
+	if edge == "on" and pose == "fingersSpread" then
+		fullscreen(app)
+	end
+	
+	--Fast Forward and Rewind functions
+	if edge == "on" and pose == "waveIn" then
+		fastForward()
+	end
+	
+	if edge == "on" and pose == "waveOut" then
+		rewind()
+		beginning = edge == "on"
+		rollReference = getMyoRollDegrees()
+		restartSince = now
+		myo.unlock(edge == "on" and "hold" or "timed")
+        myo.notifyUserAction()
+	end
+end
+
+RESTART_THRESHOLD = 45 --degrees
+RESTART_PERIOD = 100 --milliseconds
+REWIND_PERIOD = 20 -- milliseconds
+
+function onPeriodic()
+	local now = myo.getTimeMilliseconds()
+	
+	if beginning then
+		local relativeRoll = degreeDiff(getMyoRollDegrees(), rollReference)
+		if math.abs(relativeRoll) > RESTART_THRESHOLD then
+			if now - restartSince > RESTART_PERIOD then
+				if relativeRoll > 0 then
+					restart()
+				end
+			end
+		end
+	end
+end
+
+
+function onForegroundWindowChange(app, title)
+	--myo.debug("onForegroundWindowChange: " .. app .. "," .. title)
+	if app == "firefox.exe" or app == "FlashPlayerPlugin_15_0_0_246.exe" then
+		if string.find(title, " - YouTube - ") or string.find(title, "Adobe Flash Player") then
+		return true
+		end
+	end
+	return false
+end
+
+function activeAppName()
+	return "YouTube Player"
+end
+	
+	
+			

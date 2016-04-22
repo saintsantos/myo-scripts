@@ -1,0 +1,112 @@
+scriptId = 'com.thalmic.swapdoubletap'
+scriptDetailsUrl = ''
+scriptTitle = 'Default Doubletap'
+
+--very simple vibrate function
+func = "2"
+function vibrate(func)
+	if func == "1" then
+		myo.vibrate("short")
+	end
+
+	if func == "2" then
+		myo.vibrate("short")
+		myo.vibrate("short")
+	end
+
+	if func == "3" then
+		myo.vibrate("short")
+		myo.vibrate("short")
+		myo.vibrate("short")
+	end
+end
+--Get the roll of the myo armband
+function getMyoRollDegrees()
+	local rollValue = math.deg(myo.getRoll())
+	return rollValue
+end
+
+--Use this to compare the roll of the myo relative to it's starting position
+function degreeDiff(value, base)
+	local diff = value - base
+
+	if diff > 180 then
+		diff = diff - 360
+		elseif diff < -180 then
+			diff = diff + 360
+		end
+
+		return diff
+	end
+
+function scan()
+	myo.debug(func)
+	if app == "firefox.exe" then
+		if string.find(title, " - Google Play Music - ") then
+			func = "1"
+
+		elseif string.find(title, " - YouTube - ") then
+			func = "3"
+
+		else
+			func = "2"
+		end
+	end
+end
+
+function onPoseEdge(pose, edge)
+	local now = myo.getTimeMilliseconds()
+	if edge == "on" and pose == "fingersSpread" then
+		swap = edge == "on"
+		rollReference = getMyoRollDegrees()
+		functionSince = now
+		myo.unlock(edge == "on" and "hold" or "timed")
+		myo.notifyUserAction()
+	end
+
+	if pose == "doubleTap" then
+			myo.lock()
+	end
+
+	if pose == "fist" then
+		--myo.debug(func)
+		vibrate(func)
+	end
+end
+
+SWAP_THRESHOLD = 10 --Degrees
+RESTART_PERIOD = 1000 --milliseconds
+
+function onPeriodic()
+	local now = myo.getTimeMilliseconds()
+
+	if swap then
+		local relativeRoll = degreeDiff(getMyoRollDegrees(), rollReference)
+		if math.abs(relativeRoll) > SWAP_THRESHOLD then
+			if now - functionSince > RESTART_PERIOD then
+				if relativeRoll > 0 then
+					myo.debug(relativeRoll)
+					myo.debug(func)
+					myo.debug("function 2 triggered")
+					func = "2"
+				elseif relativeRoll <0 then
+					myo.debug(relativeRoll)
+					myo.debug("scan function triggered")
+					scan()
+				end
+			end
+		end
+	end
+end
+
+
+function onForegroundWindowChange(app, title)
+	if app == "firefox.exe" then
+		return true
+	end
+	return false
+end
+
+function activeAppName()
+	return "doubletap default"
+end

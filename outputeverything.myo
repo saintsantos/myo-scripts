@@ -1,0 +1,49 @@
+scriptId = 'com.thalmic.examples.outputeverything'
+scriptTitle = "Output Everything"
+scriptDetailsUrl = "" -- This won't be active until we submit the app to the myo market
+
+myo.setLockingPolicy("none")
+--myo.controlMouse(true)
+
+function onPoseEdge(pose, edge)
+	--myo.debug("onPosedge: " .. pose .. ", " .. edge)
+	if pose == "doubleTap" and edge == "on" then
+		if myo.isUnlocked() then
+			myo.controlMouse(false)
+			myo.lock()
+		else
+			myo.unlock("hold")
+			myo.controlMouse(true)
+		end
+	end
+
+	if edge == "on" then
+		if pose == "fist" then
+			myo.mouse("left", "click")
+		end
+	end
+
+	if edge == "on" and pose == "fingersSpread" then
+		myo.mouse("right", "click")
+	end
+
+
+end
+
+function onPeriodic()
+end
+
+function onForegroundWindowChange(app, title)
+	--myo.debug("onForegroundWindowChange: " .. app .. "," .. title)
+	return true
+end
+
+function activeAppName()
+	return "Output Everything"
+end
+
+
+
+function onActiveChange(isActive)
+	--myo.debug("onActiveChange")
+end

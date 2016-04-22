@@ -1,0 +1,102 @@
+scriptId = 'com.thalmic.multiplelocations'
+scriptDetailsUrl = ''
+scriptTitle = 'Multiple Gestures Test'
+
+centerYaw = 0
+centerRoll = 0
+centerPitch = 0
+
+ROLL_DEADZONE = 15 --degrees
+YAW_DEADZONE = 15 --degrees
+PITCH_DEADZONE = 15 -- degrees
+
+
+function onFist()
+	centerYaw = math.deg(myo.getYaw())
+	centerRoll = math.deg(myo.getRoll())
+	centerPitch = math.deg(myo.getPitch())
+end
+
+function calculateDeltaYaw(currentYaw, centerYaw)
+	local deltaYaw = currentYaw - centerYaw
+	if (deltaYaw > 180) then
+		deltaYaw = deltaYaw - 360
+	elseif (deltaYaw < -180) then
+		deltaYaw = deltaYaw + 360
+	end
+	return deltaYaw
+end
+
+function calculateDeltaRoll(currentRoll, centerRoll)
+	local deltaRoll = currentRoll - centerRoll
+	if (deltaRoll > 180) then
+		deltaRoll = deltaRoll - 360
+	elseif(deltaRoll < -180) then
+		deltaRoll = deltaRoll + 360
+	end
+	return deltaRoll
+end
+
+function calculateDeltaPitch(currentPitch, centerPitch)
+	local deltaPitch = currentPitch - centerPitch
+	if (deltaPitch > 180) then
+		deltaPitch = deltaPitch - 360
+	elseif (deltaPitch < -180) then
+		deltaPitch = deltaPitch + 360
+	end
+	return deltaPitch
+end
+
+function onForegroundWindowChange(app, title)
+	return true
+end
+
+function onPoseEdge(pose, edge)
+	if (edge == "on") then
+		if (pose == "fist") then
+			onFist()
+			myo.unlock("hold")
+		end
+	end
+end
+
+function onPeriodic()
+
+	if (centerYaw == 0) and (centerRoll == 0) and (centerPitch ==0) then
+		return
+	end
+	
+	local currentYaw = math.deg(myo.getYaw())
+	local currentRoll = math.deg(myo.getRoll())
+	local currentPitch = math.deg(myo.getPitch())
+	local deltaYaw = calculateDeltaYaw(currentYaw, centerYaw)
+	local deltaRoll = calculateDeltaRoll(currentRoll, centerRoll)
+	local deltaPitch = calculateDeltaPitch(currentPitch, centerPitch)
+	if (deltaYaw > YAW_DEADZONE) and (deltaRoll > ROLL_DEADZONE) then
+		myo.debug("Function1 trigger")
+		centerYaw = 0
+		centerRoll = 0
+		centerPitch = 0
+		myo.lock()
+	elseif (deltaYaw < -YAW_DEADZONE) and (deltaRoll < -ROLL_DEADZONE) then
+		myo.debug("Function 2 trigger")
+		centerYaw = 0
+		centerRoll = 0
+		centerPitch = 0
+		myo.lock()
+	elseif (deltaPitch > PITCH_DEADZONE) and (deltaYaw > YAW_DEADZONE) then
+		myo.debug("Function 3 Trigger")
+		centerYaw = 0
+		centerRoll = 0
+		centerPitch = 0
+		myo.lock()
+	elseif (deltaPitch < -PITCH_DEADZONE) and (deltaYaw < -YAW_DEADZONE) then
+		myo.debug("Function 4 Trigger")
+		centerYaw = 0
+		centerPitch = 0
+		centerRoll = 0
+		myo.lock()
+	else
+		myo.debug("No function triggered")
+	end
+end

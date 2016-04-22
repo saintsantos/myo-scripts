@@ -1,0 +1,51 @@
+scriptId = 'com.thalmic.droplock'
+scriptDetailsUrl = ''
+scriptTitle = 'droplock'
+
+--myo.setLockingPolicy("none")
+
+centerPitch = 0
+deltaPitch = 0
+
+printCount = 0
+
+function pitchCenter()
+	centerPitch = math.deg(myo.getPitch())
+end
+
+function calculateDeltaPitch(currentPitch, centerPitch)
+	local deltaPitch = currentPitch - centerPitch
+	if (deltaPitch > 180) then
+		deltaPitch = deltaPitch - 360
+	elseif (deltaPitch < -180) then
+		deltaPitch = deltaPitch + 360
+	end
+	return deltaPitch
+end
+
+function onForegroundWindowChange(app,title)
+	return true
+end
+
+function onPoseEdge(pose, edge)
+	--myo.debug("edge: " ..edge)
+	if (edge == "on") then
+		if (pose == "fist") then
+			myo.debug("you've made a fist")
+		end
+	end
+end
+
+LOCK_ZONE = 15 --degrees
+
+function onPeriodic()
+	local currentPitch = math.deg(myo.getPitch())
+	deltaPitch = calculateDeltaPitch(currentPitch, centerPitch)
+	--myo.debug("deltaPitch = " ..deltaPitch)
+	
+	if (deltaPitch > -LOCK_ZONE) then
+		myo.unlock("hold")
+	elseif(deltaPitch < -LOCK_ZONE) then
+		myo.lock()
+	end
+end

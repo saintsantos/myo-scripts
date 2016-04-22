@@ -1,0 +1,86 @@
+scriptId = 'com.thalmic.browsingfinal'
+scriptDetailsUrl = ''
+scriptTitle = 'Final Browser'
+
+website = ""
+pageTitle = ""
+browse = true
+centerRoll = 0
+ROLL_DEADZONE = 15 --degrees
+
+function onForegroundWindowChange(app, title)
+	if (app == "firefox.exe") then
+		website = title
+		return true
+	end
+	return false
+end
+
+function webscanner(title)
+	if (string.find(title, " - YouTube - ")) then
+		pageTitle = "YouTube"
+	elseif (string.find(title, " - Google Play Music - ")) then
+		pageTitle = "Google Play Music"
+	end
+	myo.debug(pageTitle)
+end
+
+function rollCenter()
+	centerRoll = math.deg(myo.getRoll())
+end
+
+function yawCenter()
+	centerYaw = math.deg(myo.getYaw())
+end
+
+function pitchCenter()
+	centerPitch = math.deg(myo.getPitch())
+end
+
+function onFist()
+	if (browse == false) then
+		if (pageTitle == "YouTube") then
+			myo.keyboard("space", "press")
+			
+		elseif (pageTitle == "Google Play Music") then
+			myo.keyboard("space", "press")
+		end
+	else
+		rollCenter()
+	end
+end
+
+function calculateDeltaRoll(currentRoll, centerRoll)
+	local deltaRoll = currentRoll - centerRoll
+	if (deltaRoll > 180) then
+		deltaRoll = deltaRoll - 360
+	elseif (deltaRoll < -180) then
+		deltaRoll = deltaRoll + 360
+	end
+	return deltaRoll
+end
+
+function onPoseEdge(pose, edge)
+	if (edge == "on") then
+		if (pose == "fist") then
+			onFist()
+		end
+	end
+end
+
+function onPeriodic()
+	if (centerRoll == 0) then
+		return
+	end
+	
+	local currentRoll = math.deg(myo.getRoll())
+	local deltaRoll = calculateDeltaRoll(currentRoll, centerRoll)
+	if (deltaRoll > ROLL_DEADZONE) then
+		myo.keyboard("f5", "press")
+		centerRoll = 0
+	elseif (deltaRoll < -ROLL_DEADZONE) then
+		myo.keyboard("w", "press", "control")
+		centerRoll = 0
+	end
+end
+

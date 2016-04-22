@@ -1,0 +1,51 @@
+scriptId = 'com.thalmic.yawtest'
+scriptDetailsUrl = ''
+scriptTitle = 'Yaw Test'
+
+centerYaw = 0
+
+function Yawcenter()
+	centerYaw = math.deg(myo.getYaw())
+end
+
+function calculateDeltaYaw(currentYaw, centerYaw)
+	local deltaYaw = currentYaw - centerYaw
+	if (deltaYaw > 180) then
+		deltaYaw = deltaRoll - 360
+	elseif (deltaYaw < -180) then
+		deltaYaw = deltaYaw + 360
+	end
+	return deltaYaw
+end
+
+function onPoseEdge(pose, edge)
+	if edge == "on" then
+		if (pose == "fist") then
+			Yawcenter()
+		end
+	end
+end
+
+YAW_DEADZONE = 30 --degrees
+
+function onPeriodic()
+	if (centerYaw == 0) then
+		return
+	end
+	
+	local currentYaw = math.deg(myo.getYaw())
+	local deltaYaw = calculateDeltaYaw(currentYaw, centerYaw)
+	if (deltaYaw > YAW_DEADZONE) then
+		myo.debug("Myo is on the right")
+		centerYaw = 0
+	elseif (deltaYaw < -YAW_DEADZONE) then
+		myo.debug("Myo is on the left")
+		centerYaw = 0
+	else
+		myo.debug("Myo is in the deadzone")
+	end
+end
+
+function onForegroundWindowChange(app, title)
+	return true
+end

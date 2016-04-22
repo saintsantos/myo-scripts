@@ -1,0 +1,48 @@
+scriptId = 'com.thalmic.GooglePlayMusic'
+scriptTitle = "Google Play Music"
+scriptDetailsUrl = ''
+
+function pausePlay()
+	myo.keyboard("space", "press")
+end
+
+function nextSong()
+	myo.keyboard("right_arrow", "press")
+end
+
+function prevSong()
+	myo.keyboard("left_arrow", "press")
+end
+
+function onPoseEdge(pose, edge)
+	--myo.debug("onPosedge: " .. pose .. ", " .. edge)
+
+	if edge == "on" and myo.isUnlocked() then
+		if pose == "fist" then
+			pausePlay()
+		end
+
+		if pose == "waveOut" then
+			prevSong()
+		end
+
+		if pose == "waveIn" then
+			nextSong()
+		end
+	end
+end
+
+function onForegroundWindowChange(app, title)
+	--myo.debug("onForegroundWindowChange: " .. app .. "," .. title)
+	if (app == "firefox.exe" or
+		app == "chrome.exe" or
+		app == "opera.exe") and
+		string.find(title, " - Google Play Music - " or " - Youtube - ") then
+		return true
+	end
+end
+
+
+function activeAppName()
+	return "Google Play Music"
+end

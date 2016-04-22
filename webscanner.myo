@@ -1,0 +1,135 @@
+scriptId = 'com.thalmic.webscanner'
+scriptDetailsUrl = ''
+scriptTitle = 'webscanner'
+
+--func = "0"
+website = ""
+page = ""
+browse = "true"
+function webscanner(title)
+	if string.find(title, " - YouTube -") then
+		page = "YouTube"
+	elseif string.find(title, " - Google Play Music - ") then
+		page = "Google Play Music"
+	end
+    myo.debug(page)
+end
+
+function onFist()
+	if page == "YouTube" and browse == "false" then
+		myo.keyboard("space", "press")
+	end
+	
+	if page == "Google Play Music" and browse == "false" then
+		myo.keyboard("space", "press")
+	end
+	
+	if browse == "true" then
+		local now = myo.getTimeMilliseconds()
+		reload = edge == "on"
+		rollReference = getMyoRollDegrees()
+		fistSince = now
+		myo.unlock(edge == "on" and "hold" or "timed")
+		myo.notifyUserAction()
+	end
+end
+
+function onFingersSpread()
+	if page == "YouTube" and browse =="false" then
+		myo.keyboard("f", "press")
+	
+	elseif page == "Google Play Music" and browse == "false" then
+		myo.keyboard("r", "press")
+	end
+end
+
+function onWaveIn()
+	if page == "YouTube" and browse == "false" then
+		myo.keyboard("left_arrow", "press")
+	end
+	
+	if page == "Google Play Music" and browse == "false" then
+		myo.keyboard("right_arrow", "press")
+	end
+	
+end
+
+function onWaveOut()
+	if page == "Google Play Music" and browse == "false" then
+		myo.keyboard("left_arrow", "press")
+	end
+	
+end
+
+function getMyoRollDegrees()
+	local rollValue = math.deg(myo.getRoll())
+	return rollValue
+end
+
+function degreeDiff(value, base)
+	local diff = value - base
+	if diff > 180 then
+		diff = diff - 360
+	elseif diff < -180 then
+		diff = diff + 360
+	end
+	return diff
+end
+
+function onPoseEdge(pose, edge)
+	local now = myo.getTimeMilliseconds()
+    if edge == "on" and pose =="fingersSpread" then
+		if browse == "true" then
+			webscanner(website)
+			browse = "false"
+		
+		elseif browse == "false" then
+			browse = "true"
+		end
+	myo.debug(browse)
+    end
+	
+	if edge == "on" and pose == "fist" then
+		onFist()
+	end
+	
+	if edge == "on" and pose == "waveIn" then
+		onWaveIn()
+	end
+end
+
+TRIGGER_THRESHOLD = 45 --degrees
+TRIGGER_PERIOD = 500 --milliseconds
+
+function onPeriodic()
+	local now = myo.getTimeMilliseconds()
+	if reload then
+		local relativeRoll = degreeDiff(getMyoRollDegrees(), rollReference)
+		if math.abs(relativeRoll) > TRIGGER_THRESHOLD then
+			if now - fistSince > TRIGGER_PERIOD then
+				myo.debug(relativeRoll)
+				if relativeRoll > 0 then
+					myo.keyboard("f5", "reload")
+				
+				elseif relativeRoll < 0 then
+					myo.keyboard("f4", "press", "control")
+				end
+			end
+		end
+	end
+end
+
+
+function onForegroundWindowChange(app, title)
+    if app == "firefox.exe" then
+        website = title
+        return true
+    end
+    return false
+end
+
+
+
+function activeAppName()
+    return "WebScanner"
+end

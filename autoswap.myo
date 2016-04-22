@@ -1,0 +1,70 @@
+scriptId = 'com.thalmic.automatedfunctionswap'
+scriptDetailsUrl = ''
+scriptTitle = 'Automated Swap Functions'
+
+func = "fun1"
+function swap(func)
+
+	if func == "fun1" then
+		myo.vibrate("short")
+	end
+	
+	if func ==  "fun2" then
+		myo.vibrate("short")
+		myo.vibrate("short")
+	
+	end
+	
+	if func == "fun3" then
+		myo.vibrate("short")
+		myo.vibrate("short")
+		myo.vibrate("short")
+	end
+end
+
+function onPoseEdge(pose, edge)
+	myo.debug("onPosedge: " .. pose .. ", " .. edge)
+	if pose == "fist" then 
+		if edge == "on" then
+			if func == "fun1" then
+				func = "fun2"
+			else
+				func = "fun1"
+			end
+		end	
+	end
+	
+	if pose == "doubleTap" then
+		if func == "fun2" then
+			func = "fun3"
+		else
+			func = "fun2"
+		end
+	end
+	
+	if pose == "fingersSpread" then
+		if edge == "on" then
+			swap(func)
+		end
+	end
+end
+
+function onForegroundWindowChange(app, title)
+	--myo.debug("onForegroundWindowChange: " .. app .. "," .. title)
+	if app == "firefox.exe" then
+		if string.find(title, " - Google Play Music - ") then
+			func = "fun1"
+			return true
+		
+		else 
+			func = "fun2"
+			return true
+		end
+	end
+	return false
+end
+
+function activeAppName()
+	return "auto swap"
+end
+	

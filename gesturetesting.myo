@@ -1,0 +1,64 @@
+scriptId = 'com.thalmic.gesturetesting'
+scriptDetailsUrl = ''
+scriptTitle = 'gestureTesting'
+
+--func = 0
+function getMyoRollDegrees()
+	local rollValue = math.deg(myo.getRoll())
+	return rollValue 
+end --This function calculates the degrees the myo rotates and returns a value for that
+
+function degreeDiff(value, base)
+	local diff = value - base
+	if diff > 180 then
+		diff = diff - 360
+	elseif diff < -180
+		diff = diff + 360
+	end
+	return diff
+end
+
+function rotateTest()
+local now = myo.getTimeMilliseconds
+	rotate = edge == "on"
+	rollReference = getMyoRollDegrees()
+	rotateSince = now
+	myo.unlock(edge = "on" and "hold" or "timed")
+	myo.notifyUserAction()
+end
+
+
+
+function onPoseEdge(pose, edge)
+	if edge == "on" and pose = "fist
+		rotateTest()
+	end
+end
+
+ROTATE_THRESHOLD = 15 --degrees
+TRIGGER_TIMEOUT = 1000 --milliseconds
+function onPeriodic()
+local now = myo.getTimeMilliseconds()
+	if rotate then
+	local relativeRoll = degreeDiff(getMyoRollDegrees(), rollReference)
+	if math.abs(relativeRoll) > ROTATE_THRESHOLD then
+		if now - rotateSince > TRIGGER_TIMEOUT then
+			if relativeRoll > 15 and < 45 then
+				myo.debug("this roll triggers one function")
+			elseif relativeRoll > 45 and < 70 then
+				myo.debug("this roll triggers function 2")
+			elseif relativeRoll > 70 then
+				myo.debug("this roll triggers a third function")
+			elseif relativeRoll < 0 then
+				myo.debug("this roll triggers a fourth function")
+			end
+		end
+	end
+end
+
+function onForegroundWindowChange(app, title)
+	if app = "firefox.exe" then
+		return true
+	end
+	return false
+end

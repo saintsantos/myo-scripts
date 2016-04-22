@@ -1,0 +1,127 @@
+scriptId = 'com.thalmic.firefoxgestures'
+scriptDetailsUrl = ''
+scriptTitle = 'Firefox Gestures'
+
+centerYaw = 0
+centerPitch = 0
+centerRoll = 0
+deltaPitch = 0
+deltaYaw = 0
+deltaRoll = 0
+
+YAW_DEADZONE = 10 --degrees
+PITCH_DEADZONE = 10 --degrees
+ROLL_DEADZONE = 15 --degrees
+printcount = 0
+
+
+function calculateDeltaYaw(currentYaw, centerYaw)
+	local deltaYaw = currentYaw - centerYaw
+	if (deltaYaw > 180) then
+		deltaYaw = deltaYaw - 360
+	elseif (deltaYaw < -180) then
+		deltaYaw = deltaYaw + 360
+	end
+	return deltaYaw
+end
+
+function calculateDeltaPitch(currentPitch, centerPitch)
+	local deltaPitch = currentPitch - centerPitch
+	if (deltaPitch > 180) then
+		deltaPitch = deltaPitch - 360
+	elseif (deltaPitch < -180) then
+		deltaPitch = deltaPitch + 360
+	end
+	return deltaPitch
+end
+
+function calculateDeltaRoll(currentRoll, centerRoll)
+	local deltaRoll = currentRoll - centerRoll
+	if (deltaRoll > 180) then
+		deltaRoll = deltaRoll - 360
+	elseif (deltaRoll < -180) then
+		deltaRoll = deltaRoll + 360
+	end
+	return deltaRoll
+end
+
+function refresh()
+	myo.keyboard("f5", "press")
+end
+
+function closeTab()
+	myo.keyboard("f4", "press", "control")
+end
+
+function nextTab()
+	myo.keyboard("pageup", "press")
+end
+
+function prevTab()
+	myo.keyboard("pagedown", "press")
+end
+
+function addressbar()
+	myo.keyboard("l", "press", "control")
+end
+
+
+function onPoseEdge(pose, edge)
+	if (edge == "on") then
+		if (pose == "fist") then
+			myo.unlock("hold")
+			centerPitch = math.deg(myo.getPitch())
+			centerRoll = math.deg(myo.getRoll())
+			centerYaw = math.deg(myo.getRoll())
+			if (deltaYaw > YAW_DEADZONE) then
+				myo.debug("Next Tab")
+				nextTab()
+			elseif (deltaYaw < -YAW_DEADZONE) then
+				myo.debug("Previous Tab")
+				prevTab()
+			end
+			
+			if (deltaRoll > ROLL_DEADZONE) then
+				myo.debug("Refresh")
+				refresh()
+			elseif(deltaRoll < -ROLL_DEADZONE) then
+				myo.debug("Close Tab")
+				closeTab()
+			end
+			
+			if (deltaPitch > PITCH_DEADZONE) then
+				myo.debug("Scroll Up")
+				myo.keyboard("up_arrow", "down")
+			elseif(deltaPitch < -PITCH_DEADZONE) then
+				myo.debug("Scroll Down")
+				myo.keyboard("down_arrow", "down")
+			else
+				myo.keyboard("up_arrow", "up")
+				myo.keyboard("down_arrow", "down")
+			end
+		end
+	end
+end
+
+function onPeriodic()
+	
+	local currentPitch = math.deg(myo.getPitch())
+	local currentYaw = math.deg(myo.getYaw())
+	local currentRoll = math.deg(myo.getRoll())
+	deltaPitch = calculateDeltaPitch(currentPitch, centerPitch)
+	deltaYaw = calculateDeltaYaw(currentYaw, centerYaw)
+	deltaRoll = calculateDeltaRoll(currentRoll, centerRoll)
+	printcount = printcount + 1
+	if printcount >= 20 then
+		myo.debug("Pitch = " ..deltaPitch.. "Roll = " ..deltaRoll.. "Yaw = " ..deltaYaw)
+	end
+end
+
+function onForegroundWindowChange(app, title)
+	if (app == "firefox.exe") then
+		return true
+	end
+	return false
+end
+
+

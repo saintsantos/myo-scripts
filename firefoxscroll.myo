@@ -1,0 +1,190 @@
+scriptId = 'com.thalmic.firefoxscroll'
+scriptDetailsUrl = ''
+scriptTitle = 'Firefox Scroll'
+
+PITCH_DEADZONE = 15 --degrees
+UNLOCK_THRESHOLD = -20 --degrees
+ROLL_DEADZONE = 15 --degrees
+YAW_DEADZONE = 15 --degrees
+
+unlockPitch = 0 --degrees
+centerPitch = 0 --degrees
+centerRoll = 0 --degrees
+centerYaw = 0 --degrees
+
+deltaYaw = 0 --degrees
+deltaRoll = 0 --degrees
+deltaPitch = 0 --degrees
+	
+--Initial Zero location functions
+function findPitchCenter()
+	centerPitch = math.deg(myo.getPitch())
+end
+
+function findUnlock()
+	unlockPitch = math.deg(myo.getPitch())
+end
+
+function findRollCenter()
+	centerRoll = math.deg(myo.getRoll())
+end
+
+function findYawCenter()
+	centerYaw = math.deg(myo.getYaw())
+end
+
+
+--Keyboard Functions
+function refresh()
+	myo.keyboard("f5", "press")
+end
+
+function closeTab()
+	myo.keyboard("f4", "press", "control")
+end
+
+function nextTab()
+	myo.keyboard("pageup", "press", "control")
+end
+
+function prevTab()
+	myo.keyboard("pagedown", "press", "control")
+end
+
+function back()
+	myo.keyboard("left_arrow", "press", "alt")
+end
+	
+
+--Gesture Calculations Functions
+function calculateDeltaPitch(currentPitch, centerPitch)
+	local deltaPitch = currentPitch - centerPitch
+	if (deltaPitch > 180) then
+		deltaPitch = deltaPitch - 360
+		
+	elseif (deltaPitch < -180) then
+		deltaPitch = deltaPitch + 360
+	end
+	return deltaPitch
+end
+
+function calculateDeltaRoll(currentRoll, centerRoll)
+	local deltaRoll = currentRoll - centerRoll
+	if (deltaRoll > 180) then
+		deltaRoll = deltaRoll - 360
+	elseif (deltaRoll < -180) then
+		deltaRoll = deltaRoll + 360
+	end
+	return deltaRoll
+end
+
+function calculateDeltaYaw(currentYaw, centerYaw)
+	local deltaYaw = currentYaw - centerYaw
+	if (deltaYaw > 180) then
+		deltaYaw = deltaYaw - 360
+	elseif (deltaYaw < -180) then
+		deltaYaw = deltaYaw + 360
+	end
+	return deltaYaw
+end
+	
+
+--Function to activate script when a particular application is selected
+function onForegroundWindowChange(app, title)
+	if (app == "firefox.exe") then
+		return true
+	end
+	return false
+end
+
+
+--This function runs every 10ms and finds the current position of the armband and compares the difference
+function onPeriodic()
+	if (centerRoll == 0) and (centerYaw == 0) then
+		return
+	else
+		local currentRoll = math.deg(myo.getRoll())
+		deltaRoll = calculateDeltaRoll(currentRoll, centerRoll)
+		local currentYaw = math.deg(myo.getYaw())
+		deltaYaw = calculateDeltaYaw(currentYaw, centerYaw)
+		--myo.debug("deltaRoll = " ..deltaRoll)
+	end
+	
+	--if (unlockPitch == 0) then
+	--	return
+	--else
+	--	local currentPitch = math.deg(myo.getPitch())
+	--	local deltaUnlock = calculateDeltaPitch(currentPitch, centerPitch)
+	--	if (deltaUnlock > UNLOCK_THRESHOLD) then
+	--		myo.debug("myo unlocked")
+	--		myo.unlock()
+	--	else
+	--		myo.debug("myo locked")
+	--		myo.lock()
+	--	end
+	--end
+	
+--This is the scroll function trigger within the onPeriodic function
+	if (centerPitch == 0) then
+		return
+	else
+	
+		local currentPitch = math.deg(myo.getPitch())
+		deltaPitch = calculateDeltaPitch(currentPitch, centerPitch)
+		--myo.debug("deltaPitch = " ..deltaPitch)
+		if (deltaPitch > PITCH_DEADZONE) then
+			myo.keyboard("up_arrow", "down")
+		elseif (deltaPitch < -PITCH_DEADZONE) then
+			myo.keyboard("down_arrow", "down")
+		else
+			myo.keyboard("up_arrow", "up")
+			myo.keyboard("down_arrow", "down")
+		end
+	end
+end	
+
+--Determines the initial roll of the myo when the device is unlocked
+function onUnlock()
+	findRollCenter()
+	findYawCenter()
+	--findUnlock()
+end
+
+--Functions based on the poses the myo recognizes
+function onPoseEdge(pose, edge)
+	if (edge == "on") then
+		if (pose == "fist") then
+			myo.unlock("hold")
+			if (deltaRoll > ROLL_DEADZONE) then
+				findPitchCenter()
+			end
+			if (deltaYaw < -YAW_DEADZONE) and (deltaRoll < ROLL_DEADZONE) then
+				back()
+			end
+		else
+			centerPitch = 0
+			myo.lock()
+		end
+		
+		if (pose == "fingersSpread") then
+			if (deltaRoll < ROLL_DEADZONE) then
+				refresh()
+			else
+				closeTab()
+			end
+		end
+		
+		if (pose == "waveIn") then
+			if (deltaYaw > YAW_DEADZONE) then
+				nextTab()
+			end
+		end
+		
+		if (pose == "waveOut") then
+			if (deltaYaw < -YAW_DEADZONE) then
+				prevTab()
+			end
+		end
+	end
+end
+			
